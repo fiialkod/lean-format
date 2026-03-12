@@ -1,0 +1,30 @@
+{
+  "name": "lean-format",
+  "version": "1.0.0",
+  "description": "LEAN (LLM-Efficient Adaptive Notation) — token-optimized serialization format for structured data in LLM context windows",
+  "main": "dist/lean.js",
+  "types": "dist/lean.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node test/lean-test.mjs"
+  },
+  "files": [
+    "dist",
+    "src",
+    "SPEC.md"
+  ],
+  "keywords": [
+    "lean",
+    "llm",
+    "serialization",
+    "token-efficient",
+    "format",
+    "encoding"
+  ],
+  "author": "fiialkod",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
