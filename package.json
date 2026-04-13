@@ -12,7 +12,8 @@
   "files": [
     "dist",
     "src",
-    "SPEC.md"
+    "SPEC.md",
+    "LICENSE"
   ],
   "keywords": [
     "lean",
