@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "lean-playground",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "/Users/denysfiialko/ Project/lean-playground", "-l", "3456"],
+      "port": 3456
+    }
+  ]
+}
