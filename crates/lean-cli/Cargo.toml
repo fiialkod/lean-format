@@ -1,0 +1,15 @@
+[package]
+name = "lean-format-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Command-line interface for LEAN format"
+
+[[bin]]
+name = "lean"
+path = "src/main.rs"
+
+[dependencies]
+lean-format = { path = "../lean-format", version = "1.1.0" }
+serde_json.workspace = true

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["maturin>=1.7,<2"]
+build-backend = "maturin"
+
+[project]
+name = "lean-format"
+version = "1.1.0"
+description = "LEAN serializer and parser"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+readme = "README.md"
+classifiers = ["Programming Language :: Rust", "Programming Language :: Python :: 3"]
+
+[tool.maturin]
+manifest-path = "bindings/python/Cargo.toml"
+python-source = "python/src"
+module-name = "lean_format._lean_format"

@@ -1,2 +1,10 @@
-node_modules
-dist
+/target/
+/dist/
+/native/
+/node_modules/
+/python/target/
+/python/dist/
+/python/*.egg-info/
+__pycache__/
+*.py[cod]
+/python/src/lean_format/_lean_format*.so

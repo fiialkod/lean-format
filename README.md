@@ -32,11 +32,31 @@ LEAN and TOON tie on accuracy (~57%), but LEAN uses fewer tokens. JSON pretty-pr
 
 ## Install
 
+### JavaScript and TypeScript (Node.js)
+
 ```bash
-npm install lean-format
+npm install github:ahmadhatahet/lean-format#main
 ```
 
-## Usage
+Prebuilt Node.js binaries are provided for macOS (x64 and arm64), Windows (x64 and arm64), and Linux (x64 with glibc or musl; arm64 with glibc).
+Installing from GitHub builds the native addon locally and requires Rust and Node.js.
+
+### Python
+
+```bash
+uv add git+https://github.com/ahmadhatahet/lean-format.git
+```
+
+The Python extension supports macOS, Linux, and Windows. If a matching wheel is unavailable, installation builds from source and requires a Rust toolchain.
+
+### Rust library and CLI
+
+```bash
+cargo add lean-format --git https://github.com/ahmadhatahet/lean-format.git
+cargo install --git https://github.com/ahmadhatahet/lean-format.git --package lean-format-cli
+```
+
+## Usage: JavaScript and TypeScript
 
 ```typescript
 import { encode, decode } from 'lean-format';
@@ -53,6 +73,29 @@ const lean = encode(data);
 const back = decode(lean);
 // back deep-equals data
 ```
+
+## Usage: Python
+
+```python
+from lean_format import dumps, loads, encode, decode
+
+text = dumps({"users": [{"id": 1, "name": "Alice"}]})
+value = loads(text)
+assert decode(encode(value)) == value
+```
+
+Python exports both `encode`/`decode` and the JSON-style aliases `dumps`/`loads`.
+LEAN normalizes equivalent numeric spellings (`1.0` encodes as `1`), so decoding an integral float may return an integer in Python.
+
+## Usage: CLI
+
+```bash
+lean encode data.json       # writes data.lean beside the input
+lean decode data.lean       # writes data.json beside the input
+lean encode data.json -o out.lean
+```
+
+The CLI overwrites its destination file. It reports failures to stderr and exits nonzero.
 
 ## What the Formats Look Like
 
@@ -83,16 +126,15 @@ const back = decode(lean);
 }
 ```
 
-**LEAN** — 2,361 tokens for the same 100 records (−61.6%):
+**LEAN** — the same data in LEAN's tab-delimited syntax:
 
 ```
-employees:
-  #[100](active|department|email|id|name|salary|yearsExperience)
-  true|Engineering|paul.garcia@company.com|1|Paul Garcia|92000|19
-  ^false|Finance|aaron.davis@company.com|2|Aaron Davis|149000|18
+employees[2]:id	name	department	active
+  1	Paul Garcia	Engineering	T
+  2	Aaron Davis	Finance	F
 ```
 
-The `#[100]` header declares the row count and column names once. Each row is pipe-delimited, rows separated by `^`. No repeated keys, no braces, no quotes. Just data.
+The header declares the row count and column names once; rows are tab-delimited.
 
 **YAML** — 4,777 tokens (−22.3%):
 
@@ -139,6 +181,95 @@ Decodes LEAN text back to a JSON-compatible value. Throws `LeanParseError` on in
 ### `LeanParseError`
 
 Error class with `line` and `content` properties for debugging parse failures.
+
+The Rust API returns `Result` values. Python raises `LeanParseError` with `line` and `content` attributes; the Node.js API exports the same error class.
+
+## CLI and release development
+
+The Rust core lives in `crates/lean-format`; bindings are in `bindings/python` and `bindings/node`.
+
+### Run tests locally
+
+From the repository root:
+
+```bash
+cargo test --workspace
+npm ci
+npm test
+python3 -m venv .venv
+# Windows PowerShell: py -3 -m venv .venv
+# Or create it with uv: uv venv .venv
+```
+
+Activate the virtual environment, then build and test the Python package:
+
+```bash
+# macOS/Linux
+source .venv/bin/activate
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+uv pip install maturin
+maturin develop --manifest-path bindings/python/Cargo.toml
+python -m unittest discover -s python/tests -v
+```
+
+`cargo test --workspace` covers the Rust core and CLI; `npm test` builds the native Node.js addon and runs its API tests; the Python commands build the local extension and test the Python API against the shared fixtures.
+
+### Install and uninstall locally
+
+Build and pack the local Node package, then install its tarball in a consuming project:
+
+```bash
+npm ci
+npm test
+npm pack
+# in the consuming project's directory; adjust the relative path as needed
+npm install ../lean-format/lean-format-1.1.0.tgz
+npm uninstall lean-format
+```
+
+In the activated Python virtual environment above, `maturin develop --manifest-path bindings/python/Cargo.toml` installs this checkout; remove it with `uv pip uninstall lean-format`.
+
+Install and remove the CLI from this checkout with:
+
+```bash
+cargo install --path crates/lean-cli
+cargo uninstall lean-format-cli
+```
+
+For a Rust library consumer, point Cargo at this checkout and remove the dependency when done:
+
+```bash
+cargo add lean-format --path ../lean-format/crates/lean-format
+cargo remove lean-format
+```
+
+### Install and uninstall from the GitHub fork
+
+In consuming projects, install and remove this fork with:
+
+```bash
+# Node.js
+npm install github:ahmadhatahet/lean-format#main
+npm uninstall lean-format
+
+# Python (inside a uv project)
+uv add git+https://github.com/ahmadhatahet/lean-format.git
+uv remove lean-format
+
+# Rust library dependency
+cargo add lean-format --git https://github.com/ahmadhatahet/lean-format.git
+cargo remove lean-format
+
+# Rust CLI
+cargo install --git https://github.com/ahmadhatahet/lean-format.git --package lean-format-cli
+cargo uninstall lean-format-cli
+```
+
+For the local Python test environment, leave it with `deactivate` and remove `.venv` (`rm -rf .venv` on macOS/Linux or `Remove-Item -Recurse -Force .venv` in PowerShell).
+
+The npm addon uses N-API platform packages. After the native artifact workflow passes, run `npx napi pre-publish -t npm` to publish the platform packages and prepare the root package, then publish the root npm package. Python wheels are built with maturin; publish the Cargo core crate before the CLI crate.
+
+The release configuration builds and checks Node.js and Python on macOS, Linux, and Windows across x64 and arm64. Node.js targets Linux x64 glibc and musl, plus arm64 glibc. Publishing requires the corresponding registry accounts and credentials.
 
 ## Benchmark Methodology
 

@@ -1,0 +1,25 @@
+{
+  "name": "lean-format-darwin-arm64",
+  "version": "1.1.0",
+  "cpu": [
+    "arm64"
+  ],
+  "main": "lean_format.darwin-arm64.node",
+  "files": [
+    "lean_format.darwin-arm64.node"
+  ],
+  "description": "LEAN (LLM-Efficient Adaptive Notation) — token-optimized serialization format for structured data in LLM context windows",
+  "keywords": [
+    "lean",
+    "llm",
+    "serialization",
+    "token-efficient",
+    "format",
+    "encoding"
+  ],
+  "author": "fiialkod",
+  "license": "MIT",
+  "os": [
+    "darwin"
+  ]
+}

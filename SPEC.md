@@ -246,7 +246,9 @@ notes[3]:
 
 ## Implementation
 
-- Encoder/decoder in TypeScript: `lean.ts`
+- Encoder/decoder in Rust: `crates/lean-format`
+- Python binding: `bindings/python`
+- Node.js/TypeScript binding: `bindings/node`
 - Add to benchmark.mjs as 5th format
 - Add to toon_stats MCP tool comparison
 - Run benchmark to compare against JSON, TOON, ASON, ZON

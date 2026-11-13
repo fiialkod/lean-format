@@ -1,4 +1,5 @@
 import { encode, decode, LeanParseError } from '../dist/lean.js';
+import { readFileSync } from 'node:fs';
 
 let pass = 0, fail = 0;
 function test(name, fn) {
@@ -215,6 +216,30 @@ test('spec example round-trips', () => {
     notes: [1, "hello", { key: "val" }]
   };
   assertRoundTrip(data);
+});
+
+console.log('\n-- shared cross-language fixtures --');
+test('shared round-trip fixtures', () => {
+  const cases = JSON.parse(readFileSync(new URL('../fixtures/roundtrip.json', import.meta.url), 'utf8'));
+  cases.forEach(assertRoundTrip);
+});
+test('shared golden encodings', () => {
+  const cases = JSON.parse(readFileSync(new URL('../fixtures/golden.json', import.meta.url), 'utf8'));
+  for (const { value, lean } of cases) {
+    assertEqual(encode(value), lean);
+    assertEqual(decode(lean), value);
+  }
+});
+test('parse error keeps line and content properties', () => {
+  assertThrows(() => decode('a:1\na:2'), e => e instanceof LeanParseError && e.name === 'LeanParseError' && e.line === 2 && e.content === 'a:2');
+});
+test('object insertion order is retained', () => {
+  const value = { z: 1, a: 2 };
+  assertEqual(encode(value), 'z:1\na:2');
+  assertEqual(Object.keys(decode(encode(value))), ['z', 'a']);
+});
+test('NaN and infinities are rejected', () => {
+  for (const value of [NaN, Infinity, -Infinity]) assertThrows(() => encode({ value }));
 });
 
 console.log(`\n${'─'.repeat(40)}`);

@@ -1,0 +1,19 @@
+[package]
+name = "lean-format-node"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+build = "build.rs"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+lean-format = { path = "../../crates/lean-format" }
+napi = { version = "3", features = ["napi8", "serde-json"] }
+napi-derive = "3"
+serde_json.workspace = true
+
+[build-dependencies]
+napi-build = "2"

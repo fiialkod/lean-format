@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  native:
+    strategy:
+      matrix:
+        include:
+          - runner: macos-15
+            target: aarch64-apple-darwin
+          - runner: macos-15-intel
+            target: x86_64-apple-darwin
+          - runner: windows-11-arm
+            target: aarch64-pc-windows-msvc
+          - runner: windows-latest
+            target: x86_64-pc-windows-msvc
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+          - runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - runner: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            musl: true
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - if: matrix.musl
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - run: npx napi build --manifest-path bindings/node/Cargo.toml --release --platform --target ${{ matrix.target }} --output-dir artifacts --no-js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.target }}
+          path: artifacts/*.node
+
+  npm-packages:
+    needs: native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm test
+      - uses: actions/download-artifact@v4
+        with:
+          path: native
+          pattern: native-*
+          merge-multiple: true
+      - run: npx napi artifacts --output-dir native --npm-dir npm
+      - run: npm_config_cache=$RUNNER_TEMP/npm-cache npm pack --dry-run --ignore-scripts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-release-artifacts
+          path: |
+            native
+            npm
+
+  test:
+    strategy:
+      matrix:
+        include:
+          - runner: macos-15
+          - runner: macos-15-intel
+          - runner: windows-11-arm
+          - runner: windows-latest
+          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: cargo test --workspace
+      - run: npm ci
+      - run: npm test
+      - run: python -m pip install maturin
+      - run: maturin build --manifest-path bindings/python/Cargo.toml --out wheelhouse
+      - run: python -m pip install --no-index --find-links wheelhouse lean-format
+      - run: python -m unittest discover -s python/tests -v

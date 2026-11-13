@@ -1,0 +1,28 @@
+{
+  "name": "lean-format-linux-x64-gnu",
+  "version": "1.1.0",
+  "cpu": [
+    "x64"
+  ],
+  "main": "lean_format.linux-x64-gnu.node",
+  "files": [
+    "lean_format.linux-x64-gnu.node"
+  ],
+  "description": "LEAN (LLM-Efficient Adaptive Notation) — token-optimized serialization format for structured data in LLM context windows",
+  "keywords": [
+    "lean",
+    "llm",
+    "serialization",
+    "token-efficient",
+    "format",
+    "encoding"
+  ],
+  "author": "fiialkod",
+  "license": "MIT",
+  "os": [
+    "linux"
+  ],
+  "libc": [
+    "glibc"
+  ]
+}

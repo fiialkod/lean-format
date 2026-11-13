@@ -1,17 +1,19 @@
 {
   "name": "lean-format",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "LEAN (LLM-Efficient Adaptive Notation) — token-optimized serialization format for structured data in LLM context windows",
   "main": "dist/lean.js",
   "types": "dist/lean.d.ts",
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "prepare": "npm run build",
+    "build": "napi build --manifest-path bindings/node/Cargo.toml --release --platform --output-dir native --js index.js --format esm --dts index.d.ts && tsc",
     "test": "npm run build && node test/lean-test.mjs"
   },
   "files": [
-    "dist",
-    "src",
+    "dist/lean.js",
+    "dist/lean.d.ts",
+    "native",
     "SPEC.md",
     "LICENSE"
   ],
@@ -26,6 +28,19 @@
   "author": "fiialkod",
   "license": "MIT",
   "devDependencies": {
+    "@napi-rs/cli": "^3.0.0",
     "typescript": "^5.0.0"
+  },
+  "napi": {
+    "binaryName": "lean_format",
+    "targets": [
+      "aarch64-apple-darwin",
+      "x86_64-apple-darwin",
+      "aarch64-pc-windows-msvc",
+      "x86_64-pc-windows-msvc",
+      "aarch64-unknown-linux-gnu",
+      "x86_64-unknown-linux-gnu",
+      "x86_64-unknown-linux-musl"
+    ]
   }
 }
